@@ -1,5 +1,7 @@
 # PPO for Protein Folding Project Proposal
 
+![PPO Architecture Diagram](report/architecture_diagram.png)
+
 ## 1. Project Goal
 
 We formulate a simplified **protein folding** problem as a **reinforcement learning** task and solve it with **Proximal Policy Optimization (PPO)**.
@@ -322,26 +324,24 @@ Typical hyperparameters:
 
 ## 6. PPO Architecture Diagram
 
-![PPO Architecture Diagram](report/architecture_diagram.png)
-
 If the Mermaid block below does not render in your viewer, the PNG above is the primary fallback figure for GitHub display.
 
 ```mermaid
 flowchart LR
-    A[Protein Sequence<br/>HP string] --> B[Protein Folding Environment]
-    B --> C[State s_t<br/>grid occupancy<br/>current endpoint<br/>direction<br/>step index<br/>HH contact features]
-    C --> D[Shared Encoder / Feature Extractor]
-    D --> E[Actor Network<br/>policy pi_theta(a|s)]
-    D --> F[Critic Network<br/>value V_phi(s)]
-    E --> G[Action Distribution<br/>left / straight / right]
-    G --> H[Sample Action a_t]
+    A["Protein Sequence<br/>HP string"] --> B["Protein Folding Environment"]
+    B --> C["State s_t<br/>grid occupancy<br/>current endpoint<br/>direction<br/>step index<br/>HH contact features"]
+    C --> D["Shared Encoder / Feature Extractor"]
+    D --> E["Actor Network<br/>policy pi_theta(a given s)"]
+    D --> F["Critic Network<br/>value V_phi of s"]
+    E --> G["Action Distribution<br/>left / straight / right"]
+    G --> H["Sample Action a_t"]
     H --> B
-    B --> I[Reward r_t<br/>validity + contact + compactness + terminal]
-    I --> J[Trajectory Buffer<br/>s_t, a_t, r_t, logpi_old, V(s_t)]
+    B --> I["Reward r_t<br/>validity + contact + compactness + terminal"]
+    I --> J["Trajectory Buffer<br/>s_t, a_t, r_t, logpi_old, V of s_t"]
     F --> J
-    J --> K[GAE Advantage Estimation<br/>A_hat_t, R_hat_t]
-    K --> L[Actor Update<br/>PPO clipped loss]
-    K --> M[Critic Update<br/>value MSE loss]
+    J --> K["GAE Advantage Estimation<br/>A_hat_t, R_hat_t"]
+    K --> L["Actor Update<br/>PPO clipped loss"]
+    K --> M["Critic Update<br/>value MSE loss"]
     L --> E
     M --> F
 ```
