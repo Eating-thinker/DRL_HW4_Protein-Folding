@@ -26,9 +26,9 @@ Protein folding can be expressed as a sequential decision-making problem:
 
 This matches the Markov Decision Process:
 
-\[
+$$
 \mathcal{M} = (\mathcal{S}, \mathcal{A}, P, R, \gamma)
-\]
+$$
 
 ---
 
@@ -61,9 +61,9 @@ At step `t`, the state can include:
 
 A practical state encoding:
 
-\[
+$$
 s_t = \{G_t, p_t, d_t, i_t, c_t\}
-\]
+$$
 
 where:
 - `G_t`: lattice occupancy tensor
@@ -84,9 +84,9 @@ At each step, the agent places the next residue using one of:
 
 So the action space is:
 
-\[
+$$
 \mathcal{A} = \{ \text{left}, \text{straight}, \text{right} \}
-\]
+$$
 
 The environment converts the action into the next lattice coordinate.
 
@@ -120,78 +120,78 @@ We want PPO to learn:
 
 Recommended reward:
 
-\[
+$$
 r_t = \lambda_1 r_{\text{valid}} + \lambda_2 r_{\text{contact}} + \lambda_3 r_{\text{compact}} + \lambda_4 r_{\text{terminal}}
-\]
+$$
 
 ### 4.1 Validity Reward
 
 - valid placement: `+0.1`
 - invalid placement or self-overlap: `-1.0`
 
-\[
+$$
 r_{\text{valid}} =
 \begin{cases}
 0.1, & \text{if valid placement} \\
 -1.0, & \text{if invalid placement}
 \end{cases}
-\]
+$$
 
 ### 4.2 Hydrophobic Contact Reward
 
 If a new non-consecutive `H-H` neighbor pair is formed:
 
-\[
+$$
 r_{\text{contact}} = \Delta N_{HH}
-\]
+$$
 
 where `\Delta N_{HH}` is the number of newly created valid `H-H` contacts.
 
 You can scale it, for example:
 
-\[
+$$
 r_{\text{contact}} = 0.5 \cdot \Delta N_{HH}
-\]
+$$
 
 ### 4.3 Compactness Reward
 
 Encourage smaller spatial spread:
 
-\[
+$$
 r_{\text{compact}} = - \alpha \cdot \Delta \text{BBoxArea}
-\]
+$$
 
 or use radius of gyration proxy:
 
-\[
+$$
 r_{\text{compact}} = - \alpha \cdot R_g
-\]
+$$
 
 ### 4.4 Terminal Reward
 
 At the end of the episode:
 
-\[
+$$
 r_{\text{terminal}} =
 \begin{cases}
 \beta \cdot N_{HH}^{\text{final}}, & \text{if sequence completely folded} \\
 -2.0, & \text{if terminated by invalid move}
 \end{cases}
-\]
+$$
 
 ### 4.5 A Good First Version
 
 For the first implementation, use:
 
-\[
+$$
 r_t = 0.1 \cdot \mathbf{1}_{\text{valid}} - 1.0 \cdot \mathbf{1}_{\text{invalid}} + 0.5 \Delta N_{HH} - 0.01 \Delta \text{BBoxArea}
-\]
+$$
 
 and
 
-\[
+$$
 r_T = 2.0 \cdot N_{HH}^{\text{final}}
-\]
+$$
 
 ---
 
@@ -201,23 +201,23 @@ r_T = 2.0 \cdot N_{HH}^{\text{final}}
 
 The actor outputs the action distribution:
 
-\[
+$$
 \pi_\theta(a_t \mid s_t)
-\]
+$$
 
 For discrete actions:
 
-\[
+$$
 \pi_\theta(a_t \mid s_t) = \text{Softmax}(f_\theta(s_t))
-\]
+$$
 
 where `f_\theta` is the policy network.
 
 The selected action is sampled as:
 
-\[
+$$
 a_t \sim \pi_\theta(\cdot \mid s_t)
-\]
+$$
 
 ---
 
@@ -225,15 +225,15 @@ a_t \sim \pi_\theta(\cdot \mid s_t)
 
 The critic estimates the state value:
 
-\[
+$$
 V_\phi(s_t)
-\]
+$$
 
 This predicts expected discounted return:
 
-\[
+$$
 V_\phi(s_t) \approx \mathbb{E}\left[\sum_{k=0}^{T-t} \gamma^k r_{t+k} \,\middle|\, s_t \right]
-\]
+$$
 
 ---
 
@@ -241,13 +241,13 @@ V_\phi(s_t) \approx \mathbb{E}\left[\sum_{k=0}^{T-t} \gamma^k r_{t+k} \,\middle|
 
 Use GAE:
 
-\[
+$$
 \delta_t = r_t + \gamma V_\phi(s_{t+1}) - V_\phi(s_t)
-\]
+$$
 
-\[
+$$
 \hat{A}_t = \delta_t + \gamma \lambda \delta_{t+1} + (\gamma \lambda)^2 \delta_{t+2} + \cdots
-\]
+$$
 
 ---
 
@@ -255,13 +255,13 @@ Use GAE:
 
 Define probability ratio:
 
-\[
+$$
 r_t(\theta) = \frac{\pi_\theta(a_t \mid s_t)}{\pi_{\theta_{\text{old}}}(a_t \mid s_t)}
-\]
+$$
 
 Clipped PPO objective:
 
-\[
+$$
 L^{\text{CLIP}}(\theta) =
 \mathbb{E}_t
 \left[
@@ -271,22 +271,22 @@ r_t(\theta)\hat{A}_t,
 \text{clip}(r_t(\theta), 1-\epsilon, 1+\epsilon)\hat{A}_t
 \right)
 \right]
-\]
+$$
 
 ---
 
 ## 5.5 Critic Loss
 
-\[
+$$
 L^{\text{value}}(\phi) =
 \mathbb{E}_t \left[ \left(V_\phi(s_t) - \hat{R}_t \right)^2 \right]
-\]
+$$
 
 where:
 
-\[
+$$
 \hat{R}_t = \hat{A}_t + V_\phi(s_t)
-\]
+$$
 
 ---
 
@@ -294,9 +294,9 @@ where:
 
 To encourage exploration:
 
-\[
+$$
 L^{\text{entropy}}(\theta) = \mathbb{E}_t \left[ \mathcal{H}(\pi_\theta(\cdot \mid s_t)) \right]
-\]
+$$
 
 ---
 
@@ -304,12 +304,12 @@ L^{\text{entropy}}(\theta) = \mathbb{E}_t \left[ \mathcal{H}(\pi_\theta(\cdot \m
 
 The optimization target is:
 
-\[
+$$
 L(\theta, \phi) =
 L^{\text{CLIP}}(\theta)
 - c_1 L^{\text{value}}(\phi)
 + c_2 L^{\text{entropy}}(\theta)
-\]
+$$
 
 Typical hyperparameters:
 - `gamma = 0.99`
@@ -323,6 +323,8 @@ Typical hyperparameters:
 ## 6. PPO Architecture Diagram
 
 ![PPO Architecture Diagram](report/architecture_diagram.png)
+
+If the Mermaid block below does not render in your viewer, the PNG above is the primary fallback figure for GitHub display.
 
 ```mermaid
 flowchart LR
@@ -350,35 +352,35 @@ flowchart LR
 
 ### Environment interaction
 
-\[
+$$
 a_t \sim \pi_\theta(a_t \mid s_t)
-\]
+$$
 
-\[
+$$
 (s_{t+1}, r_t, done) = \text{Env}(s_t, a_t)
-\]
+$$
 
 ### Actor
 
-\[
+$$
 \pi_\theta(a_t \mid s_t) = \text{Softmax}(f_\theta(s_t))
-\]
+$$
 
 ### Critic
 
-\[
+$$
 V_\phi(s_t) = g_\phi(s_t)
-\]
+$$
 
 ### Advantage
 
-\[
+$$
 \hat{A}_t = \text{GAE}(r_t, V_\phi(s_t), V_\phi(s_{t+1}))
-\]
+$$
 
 ### Actor update
 
-\[
+$$
 L_{\text{actor}} =
 \mathbb{E}_t
 \left[
@@ -388,14 +390,14 @@ r_t(\theta)\hat{A}_t,
 \text{clip}(r_t(\theta), 1-\epsilon, 1+\epsilon)\hat{A}_t
 \right)
 \right]
-\]
+$$
 
 ### Critic update
 
-\[
+$$
 L_{\text{critic}} =
 \mathbb{E}_t \left[\left(V_\phi(s_t)-\hat{R}_t\right)^2\right]
-\]
+$$
 
 ---
 
@@ -427,7 +429,7 @@ For HW, **Option A** is usually enough.
 
 ```text
 HW4/
-  ppo_protein_folding_proposal.md
+  README.md
   env/
     protein_folding_env.py
   models/
@@ -483,15 +485,15 @@ HW4/
 
 Pseudo flow:
 
-\[
+$$
 s_t \rightarrow \pi_\theta(a_t|s_t) \rightarrow a_t \rightarrow env \rightarrow r_t,s_{t+1}
-\]
+$$
 
 then:
 
-\[
+$$
 \{s_t,a_t,r_t\}_{t=1}^T \rightarrow \text{GAE} \rightarrow \text{PPO Update}
-\]
+$$
 
 ---
 
